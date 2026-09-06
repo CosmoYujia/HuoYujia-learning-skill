@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent × 大模型上下文 × Skill：三者关系讲解</title>
+<style>
+  :root{
+    --bg:#fafafa; --card:#ffffff; --text:#1f2328; --muted:#57606a;
+    --line:#e7e7e7; --accent:#3b6fe0; --accent-soft:#eaf0fc;
+    --warm:#9a6700; --warm-soft:#fff3cd; --ok:#1a7f37; --ok-soft:#e6f4ea;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.75; font-size:16px;}
+  .wrap{max-width:720px; margin:0 auto; padding:40px 22px 70px;}
+  h1{font-size:26px; line-height:1.35; margin:0 0 8px; font-weight:700;}
+  .sub{color:var(--muted); font-size:14.5px; margin-bottom:20px;}
+  .meta{color:var(--muted); font-size:13px; border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line); padding:9px 0; margin-bottom:26px;}
+  h2{font-size:20px; margin:38px 0 8px; padding-bottom:8px; border-bottom:1px solid var(--line);}
+  h2 .no{color:var(--accent); font-weight:700; margin-right:8px;}
+  h3{font-size:16px; margin:18px 0 6px;}
+  p{margin:10px 0;}
+  .lead{font-size:17px; background:var(--card); border-left:3px solid var(--accent);
+    padding:16px 18px; border-radius:0 6px 6px 0;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:16px 18px; margin:14px 0;}
+  ul,ol{padding-left:22px; margin:8px 0;}
+  li{margin:6px 0;}
+  .q{color:var(--muted); font-size:14px;}
+  .pill{display:inline-block; border-radius:4px; padding:1px 8px; font-size:13px; font-weight:600;}
+  .pill-agent{background:var(--accent-soft); color:var(--accent);}
+  .pill-ctx{background:var(--warm-soft); color:var(--warm);}
+  .pill-skill{background:var(--ok-soft); color:var(--ok);}
+  table{width:100%; border-collapse:collapse; margin:14px 0; font-size:14px; background:var(--card);}
+  th,td{border:1px solid var(--line); padding:9px 11px; text-align:left; vertical-align:top;}
+  th{background:#f3f3f3; font-weight:600;}
+  .stepflow{display:flex; flex-direction:column; gap:6px; margin:12px 0;}
+  .step{display:flex; gap:12px; align-items:flex-start;}
+  .step .n{flex:0 0 26px; height:26px; border-radius:50%; background:var(--accent); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; margin-top:3px;}
+  .step .b{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:9px 13px; flex:1;}
+  code{background:#f0f0f0; border-radius:3px; padding:1px 5px;
+    font-family:"SFMono-Regular",Consolas,"Courier New",monospace; font-size:0.88em;}
+  .note{background:var(--ok-soft); border:1px solid #bfe3c8; border-radius:8px; padding:12px 16px; margin:14px 0;}
+  .foot{color:var(--muted); font-size:13px; border-top:1px solid var(--line); margin-top:36px; padding-top:14px;}
+  @media(max-width:520px){ h1{font-size:21px;} body{font-size:15px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Agent × 大模型上下文 × Skill：三者是什么关系？</h1>
+<div class="sub">把"执行者、工作台、作业手册"放到一起，看清它们如何配合完成一件复杂的事</div>
+<div class="meta">📚 主题：Agentic AI 概念关系 ｜ 更新：2026-09-06 ｜ 依据：基于已交叉验证的权威资料（Anthropic 官方、skill.md 标准、IBM 等）整理</div>
+
+<h2><span class="no">1</span>开篇总述：三个角色，一台戏</h2>
+<div class="lead">
+如果把一件复杂任务的完成比作一次"专家上门作业"，那么三者的分工非常清晰：
+<span class="pill pill-agent">Agent（执行者）</span>负责<b>拆目标、做决策、调工具、把事办成</b>；
+<span class="pill pill-ctx">大模型上下文（工作台）</span>是它<b>一次作业里能摊开的全部信息</b>，决定"当下看得见、记得住多少"；
+<span class="pill pill-skill">Skill（作业手册）</span>是把<b>"这类事该怎么规范地做"提前写成的可复用手册</b>，让执行者下次不用从头摸索。
+</div>
+<p>三者不是并列的三样东西，而是<b>同一套智能体系统里层层嵌套的三个环节</b>：Skill 把"该怎么做"的知识喂给上下文，上下文框定 Agent 当次能看到与用到的范围，Agent 则在这个范围里调用 Skill 与工具去达成目标。把一句话拆透，就能理解它们关系的全部。</p>
+
+<h2><span class="no">2</span>分点讲解</h2>
+
+<h3><span class="no">2.1</span>三者的整体协作关系</h3>
+<div class="card">
+<p>一次完整任务的执行，是一个"<b>由 Skill 供给流程、由上下文承载信息、由 Agent 驱动循环</b>"的协作流水线，典型顺序如下：</p>
+<div class="stepflow">
+  <div class="step"><div class="n">1</div><div class="b">会话启动，Agent 的"大脑"里已有一份<b>轻量目录</b>：系统提示中常驻着所有已安装 Skill 的 <code>name</code> 与 <code>description</code>（元数据，每个约 100 token）。</div></div>
+  <div class="step"><div class="n">2</div><div class="b">用户提出请求，Agent 判断它与某个 Skill 的 <code>description</code> 是否匹配——这决定了"要不要翻开这本手册"。</div></div>
+  <div class="step"><div class="n">3</div><div class="b">触发后，Agent 把该 Skill 的 <code>SKILL.md</code> 正文（流程指令）<b>读入上下文</b>，必要时再按需读取 <code>references/</code>、执行 <code>scripts/</code>。</div></div>
+  <div class="step"><div class="n">4</div><div class="b">Agent 进入"感知—推理—行动—观察"（ReAct）循环：结合上下文中的任务信息、工具结果，一步步推进直到目标达成或触发停止条件。</div></div>
+</div>
+<p class="q">换句话说：<b>Skill 是"剧本"，上下文是"舞台能摆下的道具"，Agent 是"照着剧本在舞台上走位、把戏演完的演员"。</b>没有剧本（Skill），演员每次只能临场发挥；舞台太小（窗口不够），再好的剧本也施展不开。</p>
+</div>
+
+<h3><span class="no">2.2</span>上下文如何影响 Agent 的工作效果</h3>
+<div class="card">
+<p><b>上下文窗口 ≈ Agent 的"工作记忆"。</b>它决定一次请求中 Agent 能同时考虑多少信息（以 Token 计），直接影响任务效果的好坏：</p>
+<ul>
+  <li><b>装得下的信息 → 才用得上</b>：当 prompt、文档、对话历史、Skill 指令总和<b>超出窗口</b>时，要么请求被拒（"Context window exceeded"），要么被迫截断/摘要——该有的关键信息可能丢失。</li>
+  <li><b>输入会挤占输出</b>：输入与输出<b>共享同一个窗口</b>，塞太满会压缩可用输出空间，导致回答被截断。</li>
+  <li><b>大 ≠ 一定好用</b>：关键信息放上下文<b>中间</b>时，模型容易"遗忘"（Lost in the Middle）；无关信息太多会稀释注意力（上下文腐烂），甚至诱发幻觉。所以"堆料"式地把海量资料塞进去，常常适得其反。</li>
+</ul>
+<p><b>对 Agent 的三个直接影响：</b></p>
+<ul>
+  <li><b>决定任务能不能做</b>——一个需要读完整代码库或长文档的任务，窗口太小就做不了。</li>
+  <li><b>决定做得准不准</b>——信息组织得好、信噪比高，Agent 更少漏事实、更少幻觉。</li>
+  <li><b>决定成本与速度</b>——上下文越长，自注意力的计算与 KV 缓存开销越大，越慢越贵。</li>
+</ul>
+<p class="q">因此工程上通过 <b>截断、摘要压缩、滑窗、RAG 检索</b>等手段"管理上下文"，本质都是为了让 Agent 在有限的窗口里，<b>尽可能用到最相关、最该用的信息</b>。</p>
+</div>
+
+<h3><span class="no">2.3</span>Skill 如何沉淀可复用的任务知识</h3>
+<div class="card">
+<p>Agent 每完成一次任务，经验往往随会话结束而"清零"（上下文是短期工作记忆）。<b>Skill 解决的正是"如何让经验留存、复用、分发"</b>：</p>
+<ul>
+  <li><b>把"怎么做"固化下来</b>：把重复任务的<b>步骤、判断规则、验收标准、禁止项</b>写成 <code>SKILL.md</code>，连同脚本/参考/资源放进一个文件夹，形成标准作业程序（SOP）。</li>
+  <li><b>用渐进式披露省上下文</b>：Skill 平时只占几十~一百 token 的元数据；<b>只在被触发时才加载正文</b>，从而让 Agent 可以"带很多手册"却不撑爆工作记忆。</li>
+  <li><b>一次封装、处处复用</b>：做成开放格式后，可在多个支持该标准的智能体间复用、用 git 版本管理并与团队共享——从"个人经验"变成"团队资产"。</li>
+</ul>
+<p><b>Skill 与上下文的关系很微妙</b>：Skill 既<b>依赖</b>上下文（它的正文要被读入窗口才会生效），又<b>反向优化</b>上下文（通过分层、按需加载，把"塞进窗口的内容"压到最小、最相关）。这正是它能在长流程任务中发挥作用的关键。</p>
+<div class="note"><b>一句话记忆：</b>Skill 把"容易忘、该规范的流程知识"沉淀成<b>可复用的手册</b>；这份手册要<b>借助上下文</b>才能生效，而 <b>Agent</b> 则是那个按手册在上下文舞台上把事做成的主体。</div>
+</div>
+
+<h2><span class="no">3</span>三者核心维度对比</h2>
+<table>
+  <tr>
+    <th style="width:96px;">对比维度</th>
+    <th>Agent（执行者）</th>
+    <th>大模型上下文（工作台）</th>
+    <th>Skill（作业手册）</th>
+  </tr>
+  <tr>
+    <td>本质</td>
+    <td>能感知、决策、行动的系统</td>
+    <td>单次请求内能考虑的信息量上限</td>
+    <td>可复用流程知识与资源的文件夹格式</td>
+  </tr>
+  <tr>
+    <td>回答的问题</td>
+    <td>这次怎么把目标做成</td>
+    <td>当下能看见/记住多少</td>
+    <td>这类任务按哪套流程规范地做</td>
+  </tr>
+  <tr>
+    <td>可复用性</td>
+    <td>会话内动态决策，不长期保留经验</td>
+    <td>短时工作记忆，用完即清</td>
+    <td>跨会话、跨产品可复用（按需加载）</td>
+  </tr>
+  <tr>
+    <td>记忆属性</td>
+    <td>靠记忆模块延续</td>
+    <td>短期记忆</td>
+    <td>外部持久化的"程序性知识"</td>
+  </tr>
+  <tr>
+    <td>对"信息量"的态度</td>
+    <td>在窗口约束下做取舍</td>
+    <td>有硬上限，输入输出共享</td>
+    <td>用分层把载入量压到最小</td>
+  </tr>
+  <tr>
+    <td>主要载体/体现</td>
+    <td>模型 + 工具 + 执行循环(ReAct)</td>
+    <td>窗口中的 prompt、历史、文档、注入内容</td>
+    <td>SKILL.md + scripts/ + references/ + assets/</td>
+  </tr>
+  <tr>
+    <td>相互依赖</td>
+    <td>依赖上下文获知信息、依赖 Skill 获得流程</td>
+    <td>承载 Skill 指令，约束 Agent 能力范围</td>
+    <td>正文须读入上下文才生效，由 Agent 触发执行</td>
+  </tr>
+</table>
+
+<h2><span class="no">4</span>总结</h2>
+<div class="lead">
+三者是一个层层支撑的整体：<b>Agent 是主体</b>，负责用目标驱动的循环把事办成；<b>上下文是 Agent 的"工作记忆/舞台"</b>，其容量与信息质量直接决定 Agent 能做多长、多准、多省的任务——所以必须被主动管理（RAG、摘要、按需注入）；<b>Skill 是"沉淀下来的手册"</b>，通过渐进式披露，把可复用的流程知识装进 Agent 的上下文而不挤占它，从而把通用 Agent 变成稳定的"专家"。
+</div>
+<p>三者缺一不可：<b>没有 Skill</b>，Agent 每做一类事都要人重新交代、且容易出错；<b>不懂上下文</b>，再强的 Agent 也会因塞不下、记不牢或堆料稀释而效果崩塌；<b>没有 Agent</b>，手册与舞台都只是静止的资源，无人去真正执行。</p>
+<p>理解这三者的关系，也就抓住了当下 Agentic AI 应用设计的核心：<b>让会执行的 Agent、有限的上下文、可沉淀的 Skill 恰到好处地协同。</b></p>
+
+<div class="foot">本文为概念关系讲解，供学习理解用。各概念的精确定义、机制细节与规范依据，可分别参考同目录下的 agent.html、llm-context.html、skill.html 三份学习资料及其列出的权威来源。</div>
+
+</div>
+</body>
+</html>

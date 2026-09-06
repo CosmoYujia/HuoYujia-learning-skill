@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大模型的上下文（Context）概念学习资料</title>
+<style>
+  :root{
+    --bg:#fafafa; --card:#ffffff; --text:#1f2328; --muted:#57606a;
+    --line:#e7e7e7; --accent:#3b6fe0; --accent-soft:#eaf0fc;
+    --ok:#1a7f37; --ok-soft:#e6f4ea; --no:#cf222e; --no-soft:#fbe9ea;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.75; font-size:16px;}
+  .wrap{max-width:720px; margin:0 auto; padding:40px 22px 80px;}
+  h1{font-size:28px; line-height:1.3; margin:0 0 6px; font-weight:700;}
+  .sub{color:var(--muted); font-size:14px; margin-bottom:22px;}
+  .meta{display:flex; flex-wrap:wrap; gap:6px 14px; color:var(--muted); font-size:13px;
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding:10px 0; margin-bottom:26px;}
+  .tag{background:var(--accent-soft); color:var(--accent); border-radius:4px;
+    padding:1px 8px; font-size:12px;}
+  h2{font-size:20px; margin:40px 0 6px; padding-bottom:8px;
+    border-bottom:1px solid var(--line);}
+  h2 .no{color:var(--accent); font-weight:700; margin-right:8px;}
+  h3{font-size:16px; margin:20px 0 6px;}
+  p{margin:10px 0;}
+  .lead{font-size:17px; color:var(--text); background:var(--card);
+    border-left:3px solid var(--accent); padding:14px 16px; border-radius:0 6px 6px 0;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:16px 18px; margin:14px 0;}
+  ul,ol{padding-left:22px; margin:8px 0;}
+  li{margin:5px 0;}
+  .q{color:var(--muted); font-size:14px;}
+  table{width:100%; border-collapse:collapse; margin:12px 0; font-size:14.5px; background:var(--card);}
+  th,td{border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top;}
+  th{background:#f3f3f3; font-weight:600;}
+  code{background:#f0f0f0; border-radius:3px; padding:1px 5px;
+    font-family:"SFMono-Regular",Consolas,"Courier New",monospace; font-size:0.9em;}
+  /* 自测题 */
+  .quiz-q{margin:16px 0;}
+  .quiz-level{display:inline-block; font-size:12px; border-radius:4px; padding:1px 8px; margin-bottom:4px;}
+  .lvl-basic{background:var(--ok-soft); color:var(--ok);}
+  .lvl-mid{background:#fff3cd; color:#8a6d00;}
+  .lvl-app{background:var(--accent-soft); color:var(--accent);}
+  .quiz-title{font-weight:600; margin:4px 0 8px;}
+  .opt{display:block; width:100%; text-align:left; background:var(--card);
+    border:1px solid var(--line); border-radius:6px; padding:9px 12px; margin:6px 0;
+    font-size:14.5px; cursor:pointer; color:var(--text); transition:border-color .15s;}
+  .opt:hover{border-color:var(--accent);}
+  .opt.correct{background:var(--ok-soft); border-color:var(--ok);}
+  .opt.wrong{background:var(--no-soft); border-color:var(--no);}
+  .explain{display:none; margin-top:8px; background:#f6f6f6; border-radius:6px; padding:10px 14px; font-size:14px; color:var(--text);}
+  .opt.correct ~ .explain, .opt.wrong ~ .explain{display:block;}
+  .explain b{color:var(--accent);}
+  a{color:var(--accent); text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  .ref{margin:12px 0; padding-left:0; list-style:none;}
+  .ref li{margin:10px 0; font-size:14.5px;}
+  .src-type{display:inline-block; font-size:11px; background:#f0f0f0; color:var(--muted);
+    border-radius:3px; padding:0 6px; margin-right:8px;}
+  .foot{color:var(--muted); font-size:13px; border-top:1px solid var(--line); margin-top:40px; padding-top:14px;}
+  @media(max-width:520px){ h1{font-size:23px;} body{font-size:15px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>大模型的上下文（Context）概念学习资料</h1>
+<div class="sub">它决定了大模型"一次能记住多少、能用好多少"——拆开看 Token、上下文窗口与长上下文的真相</div>
+<div class="meta">
+  <span>📚 领域：大语言模型 / LLM 应用工程</span>
+  <span>⏱ 建议学习时长：约 40–60 分钟</span>
+  <span class="tag">概念</span><span class="tag">机制</span><span class="tag">自测</span>
+</div>
+<p class="q">更新日期：2026-09-06 ｜ 依据来源：技术厂商官方文档 / 工程实践指南 / 权威百科，共 8+ 处交叉验证</p>
+
+<h2><span class="no">1</span>学习目标 Learning Objectives</h2>
+<p>学完这份资料，你应当能够：</p>
+<ul>
+  <li><b>准确定义</b>"上下文 / 上下文窗口"，并能用"工作记忆"这一类比向他人解释其含义。</li>
+  <li><b>说清</b>为什么上下文长度以 Token 而非字数计量，以及 Token 与"字/词"的关系为何不固定。</li>
+  <li><b>解释</b>大模型为何存在上下文上限（自注意力 O(n²)、KV Cache、显存带宽），并据此理解"长上下文为何贵"。</li>
+  <li><b>识别</b>长上下文的反直觉真相：上下文越长不等于越好用（注意力稀释 / "迷失在中间" / 上下文腐烂）。</li>
+  <li><b>应用</b>常用的上下文管理手段：截断、摘要、滑窗、RAG 检索等，判断何时该用哪种。</li>
+  <li><b>独立完成</b>分级自测，检验真实掌握程度。</li>
+</ul>
+
+<h2><span class="no">2</span>核心问题 Essential Questions</h2>
+<ul>
+  <li>"上下文"是大模型的短期记忆还是长期记忆？它对一次回答到底起什么作用？</li>
+  <li>既然窗口一直在变大（4K→1M+ Token），为什么不能把所有资料一股脑塞进去？</li>
+  <li>模型"看了"100 万字，真的就"理解并记住了"中间那部分吗？</li>
+  <li>工程师面对"Context window exceeded（超出上下文窗口）"报错时，有哪几条可行的应对路线？</li>
+</ul>
+
+<h2><span class="no">3</span>概念解释 Concept Explanation</h2>
+
+<h3>一句话定义</h3>
+<div class="lead"><b>上下文窗口（Context Window）</b>，也称上下文长度，是<b>一个大语言模型在一次处理中能够"考虑"或"记住"的文本量，以 Token 为单位计量</b>。它约等于模型的<b>工作记忆（working memory）</b>——决定了一次对话中模型"当下能同时看得见"多少信息。</div>
+
+<h3>通俗类比</h3>
+<p>想象模型是个<b>一次只能端一盘菜的厨师</b>。上下文窗口就是他面前的操作台大小：台面大，能同时摆开配菜、调料和菜谱，做出的菜更连贯、更少出错；台面小，就只能先端一部分，做完一步再换料。任何放不下的菜（超出的信息），都必须先切掉（截断）或提前烩成浓缩汤（摘要），才能继续做。</p>
+
+<h3>权威定义</h3>
+<p>不同厂商文档口径一致，均强调"窗口 = 模型当前能处理的 Token 上限"：</p>
+<div class="card">
+<p><b>IBM 技术文档定义</b>：上下文窗口是一个 LLM <b>在任意时刻能够考虑或"记住"的文本量（以 Token 计）</b>。它决定了模型在忘记前面细节之前能进行多长的对话，也决定了单次能处理的最大文档/代码量。窗口就像一个"工作记忆"。</p>
+</div>
+<div class="card">
+<p><b>工程实践共识（Redis / 多家厂商文档）</b>：上下文窗口是模型在<b>单次请求中能处理的最大文本量</b>（以 Token 计）。提示词、检索到的文档、对话历史以及模型输出，全部必须塞进这个上限内；一旦超出，请求就会被拒绝（"Context window exceeded"），或需要被截断/压缩。</p>
+</div>
+<p class="q">补充说明："上下文"在日常也常指"本次对话中喂给模型的那段信息本身"（即 prompt + 历史），而"上下文窗口"强调的是这个信息容量的<b>硬上限</b>。二者常混用，理解时抓住"窗口=容量上限"即可。</p>
+
+<h2><span class="no">4</span>核心机制 Core Mechanism</h2>
+
+<h3>4.1 计量单位：Token（词元）</h3>
+<p>上下文长度不用"字数"计量，而用 <code>Token</code>。因为模型的最小处理单元不是字符，而是 token——一个 token 可能是一个字符、半个词、一个完整单词，甚至一个常见短语。这个换算<b>不是固定的</b>，取决于具体模型的分词器（tokenizer）。工程上一个可用的粗略估算约为：<b>1 token ≈ 0.75 个英文单词，或约 0.5 个汉字</b>；也有资料按"1 token ≈ 4 个字符（英文）"来估。</p>
+<div class="card">
+<p><b>为什么用 Token？</b>模型训练与推理时，把文本切分为 token 并给每个 token 分配一个 ID，用 ID（而非字符/词本身）来学习，可显著降低计算开销。同样的句子，不同语言 / 不同分词器切出的 token 数可能差异巨大（甚至可达 7 倍）。这也是"128K Token ≈ 多少字"只能估、不能精确换算的原因。</p>
+</div>
+
+<h3>4.2 为什么存在"窗口上限"？</h3>
+<p>几乎所有现代生成式模型都基于 <b>Transformer 架构</b>，其上下文上限源自三层物理/数学约束：</p>
+<table>
+  <tr><th style="width:150px;">约束</th><th>说明</th></tr>
+  <tr><td>自注意力 O(n²) 复杂度</td><td>模型要让每个 token 与序列中其他所有 token 互相比较。Token 数翻倍，计算量约变 4 倍：10K token 需约 1 亿次比较，100K 则需约 100 亿次。</td></tr>
+  <tr><td>KV Cache 显存增长</td><td>推理时每个已生成 token 都会写入缓存（KV cache）供后续使用。每新增一个 token，缓存就增长；最终占满 GPU 显存，推理变慢甚至停滞。</td></tr>
+  <tr><td>GPU 显存带宽瓶颈</td><td>注意力计算需在 GPU 的快速内存（SRAM）与慢速内存（HBM）间反复搬运数据，带宽成为吞吐瓶颈。</td></tr>
+</table>
+<p class="q">对策速览（了解即可）：软件层面用 <code>FlashAttention</code>（减少显存搬运、2–4 倍提速）、<code>稀疏注意力</code>（不必让每个 token 都关注所有 token）等；硬件层面做 KV cache 量化、多卡张量并行（Tensor Parallelism）；训练层面用位置插值等方法扩展模型见过的序列长度。理解这些有助于明白"窗口为什么不是想开多大开多大"。</p>
+
+<h3>4.3 上下文窗口里装了什么？</h3>
+<p>一次请求中占满窗口的包括（缺一不可地<b>共享同一块容量</b>）：</p>
+<ul>
+  <li><b>系统提示（system prompt）</b>：角色与行为约束。</li>
+  <li><b>用户输入与对话历史</b>：此前若干轮问答。</li>
+  <li><b>外部注入的上下文</b>：检索到的文档、工具/函数定义等。</li>
+  <li><b>模型将要输出的内容</b>：输出同样占用窗口——输入过长会"挤占"输出空间。</li>
+</ul>
+<div class="card">
+<p><b>易忽略点：输入和输出共享窗口。</b>很多人只关注输入多大，却忘了模型生成的回复也占空间。如果对话/文档塞得过满，可用的输出空间会被压缩，甚至导致回答被截断。</p>
+</div>
+
+<h3>4.4 长上下文的反直觉真相</h3>
+<p>窗口大 ≠ 模型用得好所有信息。被广泛验证的两点：</p>
+<ul>
+  <li><b>"迷失在中间"（Lost in the Middle）</b>：实验显示，当关键信息位于上下文<b>开头或结尾</b>时，模型召回率很高；但当它被埋在<b>中间</b>时，模型表现会明显下降，仿佛"忘掉"了那段。这正是"大海捞针（Needle in a Haystack）"测试揭示的现象。</li>
+  <li><b>注意力稀释 / 上下文腐烂（Context Rot）</b>：无关信息越多，信噪比越低，模型分配给真正关键信号的权重被稀释，容易漏事实、给错答案或靠幻觉补白。有研究指出，超过约 <b>3.2 万 token</b> 后回答正确率就可能开始下滑——这远低于模型宣传的百万级上限。</li>
+</ul>
+<p>结论：<b>上下文的质量比数量重要</b>。堆料式地"把整个代码库塞进 prompt"通常是糟糕策略。</p>
+
+<h2><span class="no">5</span>应用场景 Applications</h2>
+<div class="card">
+<p><b>场景 A：长文档一次性处理</b>（长上下文的价值所在）</p>
+<ul>
+  <li><b>怎么用</b>：把整本书、数百页财报或整个文件直接放入窗口，让模型总结或问答。</li>
+  <li><b>为何有效</b>：无需先检索，能保持语义连贯、跨章节理解；适合"一次性读全"场景（如合同条款审查、长报告分析）。代价是更慢、更贵，且对中间信息注意力下降。</li>
+</ul>
+</div>
+<div class="card">
+<p><b>场景 B：对话历史管理</b>（防止越聊越忘）</p>
+<ul>
+  <li><b>怎么用</b>：窗口固定时，对过长的历史做<b>截断</b>（丢弃最旧轮次）或<b>摘要压缩</b>（把旧对话浓缩成要点），只保留最近上下文。</li>
+  <li><b>为何有效</b>：控制 token 占用、保住输出空间；当对话很长时，必要时直接<b>开新会话</b>效果可能更好。</li>
+</ul>
+</div>
+<div class="card">
+<p><b>场景 C：检索增强生成（RAG）</b>（用"相关性"代替"全量"）</p>
+<ul>
+  <li><b>怎么用</b>：把文档切块，检索与问题最相关的 <code>top-K</code> 片段，只把这部分放入窗口，而不是倾倒全部文档。</li>
+  <li><b>为何有效</b>：通过<b>约束上下文</b>来压制噪声、保持信号密度，让模型在有限范围内集中推理，回答质量通常明显更高。长上下文与 RAG 并非二选一，而是可协同（检索前置 + 长窗口容纳）。</li>
+</ul>
+</div>
+<div class="card">
+<p><b>场景 D：给 Agent 注入工具定义时的"隐性成本"</b></p>
+<ul>
+  <li><b>怎么用</b>：在 Agent 应用中，每个被注入的工具（含名称、描述、参数等元信息）都会持续占用窗口 token。</li>
+  <li><b>为何有效/需权衡</b>：工具越多，固定开销越大，甚至影响核心任务性能。工程上倾向用更精简的 CLI/API 或精简工具描述，减少对窗口的固定占用。</li>
+</ul>
+</div>
+
+<h2><span class="no">6</span>易混淆问题 Confusions</h2>
+<table>
+  <tr><th style="width:170px;">易混概念</th><th>区别要点</th></tr>
+  <tr>
+    <td>上下文（Context）<br>vs<br>上下文窗口（Context Window）</td>
+    <td>"上下文"常指<b>本次喂给模型的信息本身</b>（prompt+历史+注入内容）；"上下文窗口"指模型<b>能容纳这些信息的容量上限</b>。上下文超了窗口，就装不下。</td>
+  </tr>
+  <tr>
+    <td>上下文窗口<br>vs<br>长期记忆 / 参数记忆</td>
+    <td>上下文窗口≈<b>短期工作记忆</b>，每次请求内有效，用完即"忘"。模型通过训练学到的通用知识存在<b>参数</b>里；跨会话的持久化<b>长期记忆</b>则要靠外部存储（向量库等）+ 检索，二者都不是窗口本身。</td>
+  </tr>
+  <tr>
+    <td>Token 数<br>vs<br>字符 / 字数</td>
+    <td>计量单位不同且<b>换算不固定</b>。粗略：1 token≈0.75 个英文单词或约 0.5 个汉字；具体看分词器与语言。别用"128K=多少字"做精确换算。</td>
+  </tr>
+  <tr>
+    <td>窗口大<br>vs<br>模型"记得住/用得好"</td>
+    <td>这是最常见误区。<b>窗口大只代表容量大</b>；"迷失在中间"与"注意力稀释"说明模型未必用好中段信息。关键看<b>信息组织质量</b>，不是数量。</td>
+  </tr>
+  <tr>
+    <td>输入容量<br>vs<br>输出容量</td>
+    <td>两者<b>共享同一个窗口</b>。输入太长会挤占输出空间，可能导致回答被截断——设计 prompt 时要一并考虑。</td>
+  </tr>
+</table>
+
+<h3>常见误区速查</h3>
+<ul>
+  <li><b>误区：上下文越长 = 越聪明</b>。正解：窗口大是能力，不等于利用好；堆料反而稀释注意力。</li>
+  <li><b>误区：把资料全塞进 prompt，就无需 RAG 了</b>。正解：会引发信息淹没与高成本；RAG 的意义正在于"只放最相关的"。长上下文与 RAG 常协同使用。</li>
+  <li><b>误区：模型宣传百万 token，就真能全记住</b>。正解：宣传的是容量上限，实际可用性受注意力机制限制，关键信息放中间仍易丢。</li>
+</ul>
+
+<h2><span class="no">7</span>分级自测题 Assessment</h2>
+<p class="q">选择题点击选项即可看到对错与解析。共 6 题。</p>
+
+<div class="quiz-q">
+  <span class="quiz-level lvl-basic">基础 · 识记</span>
+  <div class="quiz-title">1. 大模型"上下文窗口（Context Window）"最准确的描述是？</div>
+  <button class="opt" data-ok="0" data-exp="不准确。模型通过训练学到的通用知识存在参数里，不属于窗口；窗口是「单次请求内能考虑的信息量」。">模型在训练阶段记住的所有知识总量</button>
+  <button class="opt" data-ok="1" data-exp="正确！窗口约等于模型的工作记忆，是单次请求内能考虑/记住的文本量上限，以 Token 计量。">单次请求内模型能考虑或"记住"的最大文本量，以 Token 计</button>
+  <button class="opt" data-ok="0" data-exp="不准确。这正是易混点——窗口不代表长期记忆，也不含参数知识；跨会话记忆靠外部存储。">模型永久保存的、跨会话长期记忆的大小</button>
+  <div class="explain"><b>解析：</b><span class="exp"></span></div>
+</div>
+
+<div class="quiz-q">
+  <span class="quiz-level lvl-basic">基础 · 识记</span>
+  <div class="quiz-title">2. 为什么上下文长度以 Token 计量，而不是字数？</div>
+  <button class="opt" data-ok="0" data-exp="不对。Token 才是模型最小处理单元；中文/英文没有固定换算率，说「等于字数」会误导。">因为一个 Token 恰好等于一个汉字或一个英文单词</button>
+  <button class="opt" data-ok="1" data-exp="正确！Token 是模型切分与处理文本的最小单元，可能是半个词/整个词/短语，字数换算不固定，故以 Token 计。">Token 是模型处理文本的最小单元，且与字数之间无固定换算</button>
+  <button class="opt" data-ok="0" data-exp="不对。用 Token 是为了计量计算与容量，而非因为不同语言都能精确折算成统一字数。">为了让不同语言（中英文）都能精确折算成统一的字数</button>
+  <div class="explain"><b>解析：</b><span class="exp"></span></div>
+</div>
+
+<div class="quiz-q">
+  <span class="quiz-level lvl-mid">进阶 · 机制理解</span>
+  <div class="quiz-title">3. 大模型存在上下文上限的主要原因，下列哪组是最贴切的概括？</div>
+  <button class="opt" data-ok="0" data-exp="不对。这三者与「窗口为何有上限」的物理/数学根源关系较弱，且网络带宽并非主因。">训练数据不足、网络带宽不够、用户打字太慢</button>
+  <button class="opt" data-ok="0" data-exp="不全对。NVMe 存储是选项之一用于超长上下文的缓解手段，但不是「为什么有上限」的根源。">磁盘 NVMe 容量、内存条数量、显卡品牌差异</button>
+  <button class="opt" data-ok="1" data-exp="正确！自注意力 O(n²) 计算、KV Cache 显存增长、GPU 显存带宽瓶颈共同构成了上下文硬上限。">自注意力 O(n²) 复杂度、KV Cache 显存增长、GPU 显存带宽瓶颈</button>
+  <div class="explain"><b>解析：</b><span class="exp"></span></div>
+</div>
+
+<div class="quiz-q">
+  <span class="quiz-level lvl-mid">进阶 · 机制理解</span>
+  <div class="quiz-title">4. 关于"迷失在中间（Lost in the Middle）"现象，下列说法正确的是？</div>
+  <button class="opt" data-ok="0" data-exp="正好说反了。中间位置的召回率最低，开头和结尾最高。">当关键信息放在上下文中间时，模型召回率反而最高</button>
+  <button class="opt" data-ok="1" data-exp="正确！实验表明关键信息在开头或结尾时召回率高，埋在中间时明显下降，仿佛被模型「遗忘」。">当关键信息在开头或结尾时召回率高，埋在中间时模型表现明显下降</button>
+  <button class="opt" data-ok="0" data-exp="不对。该现象广泛存在，并非某家独有，也非少数长文档才有的极端个例。">这只发生在极少数有 bug 的模型上，主流模型均无此问题</button>
+  <div class="explain"><b>解析：</b><span class="exp"></span></div>
+</div>
+
+<div class="quiz-q">
+  <span class="quiz-level lvl-app">应用 · 场景判断</span>
+  <div class="quiz-title">5. 你想让 AI 基于"一个 300 页的企业知识库"回答问题，但不想为每次请求都付超高成本。最合适的做法是？</div>
+  <button class="opt" data-ok="0" data-exp="不推荐。全量塞入会引发信息淹没（中间信息丢失）且成本呈非线性上升。">把 300 页全部一次性塞进上下文窗口</button>
+  <button class="opt" data-ok="1" data-exp="正确！把文档切块后用 RAG 检索出最相关的 top-K 片段再放入窗口，能压制噪声、控制成本、提升准确率。">把文档切块，用 RAG 检索出最相关的片段再放入窗口</button>
+  <button class="opt" data-ok="0" data-exp="不可取。随机截取会丢掉可能相关的关键内容，属于粗暴做法。">把 300 页随机截取开头 50 页喂给模型</button>
+  <div class="explain"><b>解析：</b><span class="exp"></span></div>
+</div>
+
+<div class="quiz-q">
+  <span class="quiz-level lvl-app">应用 · 场景判断</span>
+  <div class="quiz-title">6. 一段长对话已接近填满窗口，你既想继续聊、又不想让模型"忘"掉早期约定的关键约束。合理的处理方式是？</div>
+  <button class="opt" data-ok="0" data-exp="对旧对话做摘要压缩是可行手段，但更关键的是把重要的长期约束提炼保留，并避免输入挤占输出空间。">把最旧的轮次直接全部丢弃，不保留任何要点</button>
+  <button class="opt" data-ok="1" data-exp="正确！对旧对话做摘要压缩、把关键约束提炼保留到系统提示或开头，是管理长对话的常见做法。">压缩旧对话为摘要，并把关键约束提炼后放在显眼位置（如系统提示/开头）</button>
+  <button class="opt" data-ok="0" data-exp="不妥。对话越长越容易「迷失在中间」；必要时开新会话、把关键约束写进新会话的 system prompt 往往更可靠。">坚持在同一会话里无限堆历史，什么都不做</button>
+  <div class="explain"><b>解析：</b><span class="exp"></span></div>
+</div>
+
+<h2><span class="no">8</span>参考资料链接 References</h2>
+<p class="q">以下来源为权威技术厂商文档与工程实践指南，已尽力核验。部分为第三方转载/译介页，判断请以原始厂商与官方文档为准。</p>
+<ul class="ref">
+  <li><span class="src-type">厂商技术文档</span><b>IBM, "What is a context window?"</b>——上下文窗口/Token/Transformer 自注意力与窗口上限的权威定义。
+    <br><a href="https://www.ibm.com/think/topics/context-window">IBM 官方原文</a></li>
+  <li><span class="src-type">工程实践</span><b>Redis, "LLM context windows: Understanding and optimizing working memory"</b>——O(n²) 复杂度、KV Cache、FlashAttention/稀疏注意力、位置编码、各主流模型窗口规格表。
+    <br><a href="https://redis.io/blog/llm-context-windows/">Redis 官方博客</a></li>
+  <li><span class="src-type">技术百科</span><b>百度百科「上下文窗口」条目</b>——主流模型窗口规格（GPT-4o/Claude 3.5/Llama 3.1/Gemini 1.5 等）、输入输出共享窗口、扩大窗口的代价与对抗攻击面、工具注入占用窗口等综合说明。
+    <br><a href="https://baike.baidu.com/item/%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AA%97%E5%8F%A3/67367067">百科词条</a></li>
+  <li><span class="src-type">概念条目</span><b>百度百科「上下文腐烂（Context Rot）」条目</b>——Chroma 于 2025 年命名并研究的长上下文性能衰减现象，含"迷失在中间"、注意力稀释、约 32K token 后准确率下滑等要点。
+    <br><a href="https://baike.baidu.com/item/%E4%B8%8A%E4%B8%8B%E6%96%87%E8%85%90%E7%83%82/67362395">百科词条</a></li>
+  <li><span class="src-type">行业分析</span><b>《更大的上下文窗口为什么让 RAG 变得更重要而非更多余》（deephub，网易转载）</b>——注意力稀释、检索崩溃、RAG 与长上下文的取舍。
+    <br><a href="https://www.163.com/dy/article/KNUC6P8T0531D9VR.html">文章转载页</a></li>
+  <li><span class="src-type">技术综述</span><b>《大模型上下文工程（Context Engineering）指南》</b>——上下文窗口演进史（4K→128K→1M）、上下文腐烂、"外置记忆/RAG"兴起的背景梳理。
+    <br><a href="https://www.163.com/dy/article/KNTK3NBC05561I4N.html">指南发布稿（转载）</a></li>
+  <li><span class="src-type">行业分析</span><b>《从 RAG 到 Context：2025 年 RAG 技术年终总结》（腾讯新闻）</b>——"长上下文能否取代 RAG"的实践检验、四种外部知识输入范式及成本量级对比。
+    <br><a href="https://news.qq.com/rain/a/20251221A038VK00">文章</a></li>
+</ul>
+
+<div class="foot">
+本资料为"大模型的上下文"主题学习材料，由 concept-learning-generator 生成。内容基于上述权威来源整理与交叉验证；为便于理解加入类比与小结，学习时请以原始文献为准。
+</div>
+
+</div>
+
+<script>
+  document.querySelectorAll('.opt').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var box = btn.closest('.quiz-q');
+      var ex = box.querySelector('.exp');
+      if(ex){ ex.textContent = btn.dataset.exp || ''; }
+      box.querySelectorAll('.opt').forEach(function(o){ o.classList.remove('correct','wrong'); });
+      if(btn.dataset.ok === '1'){ btn.classList.add('correct'); }
+      else{ btn.classList.add('wrong'); var right = box.querySelector('.opt[data-ok="1"]'); if(right){right.classList.add('correct');} }
+      box.querySelectorAll('.opt').forEach(function(o){ o.disabled = true; });
+    });
+  });
+</script>
+</body>
+</html>

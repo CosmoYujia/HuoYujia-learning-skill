@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent（智能体）概念学习资料</title>
+<style>
+  :root{
+    --bg:#fafafa; --card:#ffffff; --text:#1f2328; --muted:#57606a;
+    --line:#e7e7e7; --accent:#3b6fe0; --accent-soft:#eaf0fc;
+    --ok:#1a7f37; --ok-soft:#e6f4ea; --no:#cf222e; --no-soft:#fbe9ea;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.75; font-size:16px;}
+  .wrap{max-width:720px; margin:0 auto; padding:40px 22px 80px;}
+  h1{font-size:28px; line-height:1.3; margin:0 0 6px; font-weight:700;}
+  .sub{color:var(--muted); font-size:14px; margin-bottom:22px;}
+  .meta{display:flex; flex-wrap:wrap; gap:6px 14px; color:var(--muted); font-size:13px;
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding:10px 0; margin-bottom:30px;}
+  .tag{background:var(--accent-soft); color:var(--accent); border-radius:4px;
+    padding:1px 8px; font-size:12px;}
+  h2{font-size:20px; margin:40px 0 6px; padding-bottom:8px;
+    border-bottom:1px solid var(--line);}
+  h2 .no{color:var(--accent); font-weight:700; margin-right:8px;}
+  h3{font-size:16px; margin:20px 0 6px;}
+  p{margin:10px 0;}
+  .lead{font-size:17px; color:var(--text); background:var(--card);
+    border-left:3px solid var(--accent); padding:14px 16px; border-radius:0 6px 6px 0;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:16px 18px; margin:14px 0;}
+  ul,ol{padding-left:22px; margin:8px 0;}
+  li{margin:5px 0;}
+  .q{color:var(--muted); font-size:14px;}
+  table{width:100%; border-collapse:collapse; margin:12px 0; font-size:14.5px; background:var(--card);}
+  th,td{border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top;}
+  th{background:#f3f3f3; font-weight:600;}
+  blockquote{margin:12px 0; padding:2px 16px; border-left:3px solid var(--line);
+    color:var(--muted); font-size:14.5px;}
+  code{background:#f0f0f0; border-radius:3px; padding:1px 5px;
+    font-family:"SFMono-Regular",Consolas,"Courier New",monospace; font-size:0.9em;}
+  /* 自测题 */
+  .quiz-q{margin:16px 0;}
+  .quiz-level{display:inline-block; font-size:12px; border-radius:4px; padding:1px 8px; margin-bottom:4px;}
+  .lvl-basic{background:var(--ok-soft); color:var(--ok);}
+  .lvl-mid{background:#fff3cd; color:#8a6d00;}
+  .lvl-app{background:var(--accent-soft); color:var(--accent);}
+  .quiz-title{font-weight:600; margin:4px 0 8px;}
+  .opt{display:block; width:100%; text-align:left; background:var(--card);
+    border:1px solid var(--line); border-radius:6px; padding:9px 12px; margin:6px 0;
+    font-size:14.5px; cursor:pointer; color:var(--text); transition:border-color .15s;}
+  .opt:hover{border-color:var(--accent);}
+  .opt.correct{background:var(--ok-soft); border-color:var(--ok);}
+  .opt.wrong{background:var(--no-soft); border-color:var(--no);}
+  .explain{display:none; margin-top:8px; background:#f6f6f6; border-radius:6px; padding:10px 14px; font-size:14px; color:var(--text);}
+  .opt.correct ~ .explain, .opt.wrong ~ .explain{display:block;}
+  .explain b{color:var(--accent);}
+  .apply-ans{display:none; margin-top:8px;}
+  .btn-ans{background:var(--accent-soft); color:var(--accent); border:1px solid var(--accent);
+    border-radius:6px; padding:6px 14px; font-size:14px; cursor:pointer;}
+  .btn-ans:hover{background:var(--accent); color:#fff;}
+  .show .apply-ans{display:block;}
+  a{color:var(--accent); text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  .ref{margin:12px 0; padding-left:0; list-style:none;}
+  .ref li{margin:10px 0; font-size:14.5px;}
+  .src-type{display:inline-block; font-size:11px; background:#f0f0f0; color:var(--muted);
+    border-radius:3px; padding:0 6px; margin-right:8px;}
+  .foot{color:var(--muted); font-size:13px; border-top:1px solid var(--line); margin-top:40px; padding-top:14px;}
+  @media(max-width:520px){ h1{font-size:23px;} body{font-size:15px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Agent（智能体）概念学习资料</h1>
+<div class="sub">从学术定义到现代 LLM Agent，一次弄懂它到底是什么、怎么运作、何时该用</div>
+<div class="meta">
+  <span>📚 领域：人工智能 / Agentic AI</span>
+  <span>⏱ 建议学习时长：约 40–60 分钟</span>
+  <span class="tag">概念</span><span class="tag">机制</span><span class="tag">自测</span>
+</div>
+<p class="q">更新日期：2026-09-06 ｜ 依据来源：官方规范 / 权威教材 / 厂商官方文档 / 学术综述，共 8+ 处交叉验证</p>
+
+<h2><span class="no">1</span>学习目标 Learning Objectives</h2>
+<p>学完这份资料，你应当能够：</p>
+<ul>
+  <li><b>准确界定</b>"Agent"在学术人工智能与当代大模型语境下的含义，并解释为何中文译名存在争议。</li>
+  <li><b>复述</b>理性 Agent（rational agent）的经典定义：感知序列 → 决策 → 行动，以及最大化"期望性能度量"的含义。</li>
+  <li><b>区分</b>三个易混层次：Workflow（工作流）与 Agent（智能体）在架构上的区别。</li>
+  <li><b>拆解</b>现代 LLM Agent 的核心机制：感知—推理—行动循环（ReAct）、规划、记忆、工具调用，并说清各自的职责。</li>
+  <li><b>判断</b>一个具体任务"该不该用 Agent"，并能权衡 Agent 与更简单方案的成本。</li>
+  <li><b>列举</b>Agent 的典型应用场景与易犯误区，独立完成分级自测。</li>
+</ul>
+
+<h2><span class="no">2</span>核心问题 Essential Questions</h2>
+<ul>
+  <li>把一段程序称为"Agent"，它到底具备了哪些别的软件没有的东西？</li>
+  <li>"能自主行动"是 Agent 的本质，但为什么理性 ≠ 全知、也不等于永远成功？</li>
+  <li>大模型驱动的 Agent，与传统专家系统中的 Agent、与单纯"聊天机器人"，区别究竟在哪？</li>
+  <li>工程上，什么时候该用简单工作流，什么时候才值得引入真正自主的 Agent？</li>
+</ul>
+
+<h2><span class="no">3</span>概念解释 Concept Explanation</h2>
+
+<h3>一句话定义</h3>
+<div class="lead">Agent（行为体 / 智能体）是指<b>能够感知其所处环境、并根据感知做出决策、进而对环境施加行动</b>的存在——它不是一个被动回答问题的工具，而是一个"能办事"的行动者。</div>
+
+<h3>通俗类比</h3>
+<p>想象一个<b>快递配送员</b>：他（1）读取包裹面单和路况（感知）；（2）判断走哪条路线最省时（决策）；（3）真的骑车出发、送货、签收（行动）。一个只会在聊天里告诉你"配送大概 2 小时"的客服机器人，不是 Agent；而那个会看路、选路、改路、最终把货送到的配送员，才像 Agent。Agent 的关键词是 <b>act / to do（行动）</b>。</p>
+
+<h3>权威定义</h3>
+<p>这一术语有两条公认的、来自权威体系的定义线索：</p>
+<div class="card">
+<p><b>① 学术教科书定义（智能体范式）</b><br>
+在人工智能领域的经典教科书《人工智能：现代方法》（Stuart Russell 与 Peter Norvig 著）中，agent 被定义为"<b>通过传感器感知环境、并通过执行器对环境影响行动</b>"的实体；AI 被理解为"对从环境中接收感知、并执行行动的动作体的研究"。这是现代 AI 的统一范式。该教材被全球 1500 多所院校采用，是引用最广的 AI 教材。</p>
+</div>
+<div class="card">
+<p><b>② 官方政策定义（面向大模型时代的智能体）</b><br>
+2026 年 5 月，国家网信办、国家发展改革委、工业和信息化部联合印发的《智能体规范应用与创新发展实施意见》将智能体定义为"<b>具备自主感知、记忆、决策、交互与执行能力的智能系统</b>，是人工智能产品及服务的重要形态"。五个能力关键词——感知、记忆、决策、交互、执行——精确对应了当前智能体的核心技术要素。</p>
+</div>
+<p class="q">术语说明："Agent"的中文译名尚未完全统一，常见的译法包括"智能体""行为体""代理/代理人"。学术界有学者主张译为"行为体（doer/actor）"，因为其本义指"能行动、行使能力者"，"智能体"的说法容易让人误以为它"天然自带智能"。理解时抓住"行动者"这一核心即可，不必在译名上纠结。</p>
+
+<h2><span class="no">4</span>核心机制 Core Mechanism</h2>
+
+<h3>4.1 经典框架：Agent 与环境</h3>
+<p>所有 Agent 共享同一个最基本结构——它通过<code>传感器（sensors）</code>接收来自环境的输入（称为<code>感知 percept</code>），内部做决策，再通过<code>执行器（actuators）</code>对环境影响行动。把"感知序列 → 行动"的映射记作 <code>agent function（Agent 函数）</code>。</p>
+<div class="card" style="text-align:center; font-size:14px;">
+  <div>环境（Environment）</div>
+  <div style="color:var(--muted);">↑ 感知 ←─────── Agent ───────→ ↓ 行动</div>
+  <div style="color:var(--muted);">传感器(感知层)　决策机制(大脑)　执行器(行动层)</div>
+</div>
+
+<h3>4.2 理性 Agent：什么算"聪明"</h3>
+<p>Russell &amp; Norvig 提出<b>理性 Agent（rational agent）</b>：它针对每个可能的感知序列，做出<b>能最大化其期望性能度量（expected performance measure）</b>的行动。要特别注意，这里的"理性"有三个重要边界，是常被误读的地方：</p>
+<ul>
+  <li><b>理性 ≠ 全知（omniscient）</b>：它并不事先知道一切，因此结果仍可能出错。</li>
+  <li><b>理性 ≠ 全知 ≠ 永远成功</b>：它只对"在给定信息下选最优"负责，无法保证实际效果完美。</li>
+  <li><b>理性包含"主动获取信息"</b>：不知道时先去查证，而不是装作知道——这对应了现代 Agent 的工具检索行为。</li>
+</ul>
+
+<h3>4.3 当代机制：LLM 驱动的 Agent（ReAct 循环）</h3>
+<p>大语言模型（LLM）成为 Agent 的"大脑"后，工程上最主流的运行模式是<b>ReAct（Reasoning + Acting，推理 + 行动）</b>循环，由 Google 研究团队在 2022 年的论文中提出。它的核心是让模型在"思考—行动—观察"间反复迭代，直到任务完成：</p>
+<div class="card">
+<ol>
+  <li><b>Thought（思考）</b>：模型理解当前状态，判断还缺什么、下一步该做什么。</li>
+  <li><b>Action（行动）</b>：模型发出结构化指令，调用某个<code>工具（tool）</code>——查天气 API、执行代码、读文件、发邮件等。</li>
+  <li><b>Observation（观察）</b>：系统执行工具并返回结果，作为新的感知注入上下文。</li>
+  <li>回到第 1 步循环，直到模型判定目标达成，或触发终止条件（如最大步数、超时、预算上限）。</li>
+</ol>
+</div>
+<p>从"纯粹生成一段话回答你"变成"为了回答问题而真的去查、去做、去验证"，这是 Agent 相对普通聊天机器人的质变——从"我觉得"变成"我查了、我做了"。</p>
+
+<h3>4.4 现代 Agent 的组成模块</h3>
+<p>综合 Anthropic 官方文档与多份工程综述，现代 LLM Agent 通常可拆成五个组件，可用"大脑—规划—记忆—双手—护栏"来记忆：</p>
+<table>
+  <tr><th style="width:120px;">组件</th><th>职责</th><th>实现要点</th></tr>
+  <tr><td>模型核心<br>(LLM)</td><td>推理与决策大脑</td><td>理解输入、决定下一步（选工具/作答/求助）</td></tr>
+  <tr><td>规划</td><td>拆解目标、排定步骤</td><td>ReAct（边想边做）、Plan-and-Execute（先规划再执行）、动态重规划</td></tr>
+  <tr><td>记忆</td><td>跨轮次保持上下文</td><td>工作记忆/短时（会话上下文）、长时（向量库/知识图谱持久化）</td></tr>
+  <tr><td>工具</td><td>影响外部世界</td><td>Function Calling / Tool Use；MCP（模型上下文协议）统一接入</td></tr>
+  <tr><td>控制与护栏</td><td>防止失控</td><td>最大迭代次数、超时、成本上限、工具白名单、人工审批</td></tr>
+</table>
+
+<h3>4.5 一个关键架构区分：Workflow vs Agent</h3>
+<p>Anthropic《Building Effective Agents》官方指南指出，业界常把两者混称，但架构上有重要区别：</p>
+<div class="card">
+<p><b>Workflow（工作流）</b>：LLM 与工具<b>沿着预定义的代码路径</b>被编排的系统。路径是写死的，只是每一步内部可由模型做决策。例如"先写大纲 → 检查通过 → 再成文"。</p>
+<p><b>Agent（智能体）</b>：LLM <b>动态决定自己的流程与工具使用</b>，自己掌控"如何完成任务"。步骤数量、顺序事前无法预知。</p>
+</div>
+<p>进阶工作流模式还包括：提示链（Prompt Chaining）、路由（Routing）、并行化（Parallelization）、协调者-执行者（Orchestrator-Workers）、评估器-优化器（Evaluator-Optimizer）。理解它们有助于判断该用哪种结构。</p>
+
+<h2><span class="no">5</span>应用场景 Applications</h2>
+<div class="card">
+<p><b>场景 A：客户支持智能体</b></p>
+<ul>
+  <li><b>怎么用</b>：不只"聊天"，还通过工具查询客户订单、调用系统发放退款或更新工单。</li>
+  <li><b>为何有效</b>：有明确成功标准（问题是否解决），可程序化核对、收集反馈迭代，并允许人类介入。</li>
+</ul>
+</div>
+<div class="card">
+<p><b>场景 B：编码智能体（Coding Agent）</b></p>
+<ul>
+  <li><b>怎么用</b>：模型自主修改多个文件、跑测试，把报错当作"观察"继续修正。</li>
+  <li><b>为何有效</b>：自动测试给出客观反馈，问题是结构化的、可验证的，Agent 能围绕测试结果迭代（如 SWE-bench 任务）。</li>
+</ul>
+</div>
+<div class="card">
+<p><b>场景 C：多步骤/研究类智能体</b></p>
+<ul>
+  <li><b>怎么用</b>：一个主智能体把研究任务拆给多个子智能体并行检索，再汇总成带引用的报告。</li>
+  <li><b>为何有效</b>：相比一次性 RAG 检索，多步动态搜索能适应新发现、交叉验证，产出更高质量结果。</li>
+</ul>
+</div>
+<div class="card">
+<p><b>场景 D：面向执行结果的企业自动化</b></p>
+<ul>
+  <li><b>怎么用</b>：在可信环境中，把"做事的人"从流程中解放出来——由 Agent 直接跑通流程、处理合规/客服等结构化任务。</li>
+  <li><b>为何有效</b>：从"做对事情"走向"做成对的事"，交付更快、更可问责（前提：做好沙盒、护栏与人工监督）。</li>
+</ul>
+</div>
+
+<h2><span class="no">6</span>易混淆问题 Confusions</h2>
+<table>
+  <tr><th style="width:160px;">易混概念</th><th>区别要点</th></tr>
+  <tr>
+    <td>Chatbot（聊天机器人）<br>vs<br>Agent</td>
+    <td>Chatbot 主要<b>生成回答</b>，边界通常在"对话"内；Agent 要<b>为达成目标而采取一连串行动</b>，调用工具、影响环境并对结果负责。能聊天 ≠ 是 Agent。</td>
+  </tr>
+  <tr>
+    <td>Workflow（工作流）<br>vs<br>Agent</td>
+    <td>Workflow 的路径<b>由代码预定义</b>，可预测、稳定；Agent 的路径<b>由模型动态决定</b>，灵活但成本更高、更易出错。多数任务用 Workflow 或更简单方案即可，不必都上 Agent。</td>
+  </tr>
+  <tr>
+    <td>Agent（泛 AI 术语）<br>vs<br>LLM Agent（大模型智能体）</td>
+    <td>"Agent"最早指<b>任何能感知—决策—行动的实体</b>（恒温器、机器人、软件都算）。LLM Agent 特指<b>以大模型为决策大脑</b>、通过推理规划调用工具的新形态。二者是"广义基座 + 当代具体形态"的关系。</td>
+  </tr>
+  <tr>
+    <td>"智能体"这个译名<br>（中译名争议）</td>
+    <td>有学者认为 agent 本义是"行为体 / 行动者"，译"智能体"易暗示其天然智能。本文按主流沿用"智能体"，但理解上应抓住"它是行动者，智能由系统整体涌现"这一本质。</td>
+  </tr>
+</table>
+
+<h3>常见误区速查</h3>
+<ul>
+  <li><b>误区：Agent 越复杂越好</b>。正解：Anthropic 强调"先从最简单的方案开始，能不加复杂度就不加"，Agent 以延迟和成本换性能，需权衡。</li>
+  <li><b>误区：有记忆就是 Agent</b>。正解：记忆只是组件之一，Agent 的核心是"自主决定流程并行动"。</li>
+  <li><b>误区：理性 Agent 不会犯错</b>。正解：理性 ≠ 全知 ≠ 成功，它只保证在信息约束下做最优选择。</li>
+</ul>
+
+<h2><span class="no">7</span>分级自测题 Assessment</h2>
+<p class="q">选择题点击选项即可看到对错与解析；应用题点击"查看参考解答"。共 6 题。</p>
+
+<div class="quiz-q">
+  <span class="quiz-level lvl-basic">基础 · 识记</span>
+  <div class="quiz-title">1. 依据经典教材《人工智能：现代方法》，一个 Agent 最核心的两类构成是？</div>
+  <button class="opt" data-ok="1" data-exp="正确！Agent 通过「传感器(sensors)感知环境」、通过「执行器(actuators)影响环境」，这是其最基本的定义结构。">传感器与执行器</button>
+  <button class="opt" data-ok="0" data-exp="不准确。Agent 的构成强调「感知(sensors)与行动(actuators)」；你选的前两项并不构成其经典定义主体。">CPU 与内存</button>
+  <button class="opt" data-ok="0" data-exp="不准确。语言与文本只是它处理的信息形式之一，并非定义 Agent 的核心构件。">语言与文本</button>
+  <div class="explain"><b>解析：</b><span class="exp"></span></div>
+</div>
+
+<div class="quiz-q">
+  <span class="quiz-level lvl-basic">基础 · 识记</span>
+  <div class="quiz-title">2. 2026 年国家三部门《智能体规范应用与创新发展实施意见》将"智能体"界定为具备哪五类能力的智能系统？</div>
+  <button class="opt" data-ok="0" data-exp="不准确。「自主感知、记忆、决策、交互与执行」才是官方定义的五关键词。">感知、学习、聊天、推荐、翻译</button>
+  <button class="opt" data-ok="1" data-exp="正确！官方定义：智能体是「具备自主感知、记忆、决策、交互与执行能力的智能系统」。">自主感知、记忆、决策、交互、执行</button>
+  <button class="opt" data-ok="0" data-exp="不准确。「交互」与「执行」在官方定义中，比你说的「搜索」与「排序」更核心。">搜索、排序、分类、生成、存储</button>
+  <div class="explain"><b>解析：</b><span class="exp"></span></div>
+</div>
+
+<div class="quiz-q">
+  <span class="quiz-level lvl-mid">进阶 · 机制理解</span>
+  <div class="quiz-title">3. 关于"理性 Agent（rational agent）"，下列说法正确的是？</div>
+  <button class="opt" data-ok="0" data-exp="不对。恰恰相反——理性 ≠ 全知 ≠ 永远成功；它只在信息与算力约束下追求期望最优。">理性 Agent 一定能得出最优结果</button>
+  <button class="opt" data-ok="1" data-exp="正确！理性行动是「最大化期望性能度量」，且不要求全知；信息不足时主动获取信息也是理性的体现。">它追求最大化期望性能，且信息不足时应主动获取信息</button>
+  <button class="opt" data-ok="0" data-exp="不对。经典定义强调通过传感器感知、执行器行动作用于环境，而非单纯基于规则执行。">它只依赖预先写死的条件-动作规则，无需感知</button>
+  <div class="explain"><b>解析：</b><span class="exp"></span></div>
+</div>
+
+<div class="quiz-q">
+  <span class="quiz-level lvl-mid">进阶 · 机制理解</span>
+  <div class="quiz-title">4. 当代 LLM Agent 最主流的运行循环 ReAct，其交替的三步是什么？</div>
+  <button class="opt" data-ok="0" data-exp="不对。ReAct = Reasoning + Acting，不含你说的「反思」作为独立命名步骤（Reflexion 是另一类带自评的变体）。">反思 → 规划 → 复盘</button>
+  <button class="opt" data-ok="1" data-exp="正确！ReAct 循环是 Thought（思考）→ Action（行动/工具调用）→ Observation（观察工具结果），如此迭代直至任务完成。">思考(Thought) → 行动(Action) → 观察(Observation)</button>
+  <button class="opt" data-ok="0" data-exp="不对。顺序与内容都错了：ReAct 强调「推理与行动交替」，由外部工具结果作为观察反馈。">提问 → 检索 → 复述</button>
+  <div class="explain"><b>解析：</b><span class="exp"></span></div>
+</div>
+
+<div class="quiz-q">
+  <span class="quiz-level lvl-app">应用 · 场景判断</span>
+  <div class="quiz-title">5. 你在做一个"文档翻译"功能：先生成英文文案，再翻成中文，每步格式固定。工程上最合适的做法是？</div>
+  <button class="opt" data-ok="0" data-exp="不完全对。虽然能跑，但代价高；对一个路径可预知、可拆分为固定子任务的需求，框架与自主 Agent 都属于过度设计。">直接上一套多智能体框架 + 自主 Agent</button>
+  <button class="opt" data-ok="1" data-exp="正确！任务能被干净地拆成固定子任务时，Anthropic 建议优先用简单方案或「提示链(Prompt Chaining)」工作流，可预测且省成本。">先用简单方案或「提示链」工作流，再评估是否够用</button>
+  <button class="opt" data-ok="0" data-exp="不建议。这是路径固定、可拆分的场景，不是「步骤数无法预知」的开放问题，不适合上真正自主的 Agent。">因为"能用模型"，所以必须构建全自主 Agent</button>
+  <div class="explain"><b>解析：</b><span class="exp"></span></div>
+</div>
+
+<div class="quiz-q">
+  <span class="quiz-level lvl-app">应用 · 场景判断</span>
+  <div class="quiz-title">6. 你想让 AI 帮你"跨多个文件改代码、跑测试并根据报错反复修正直到通过"。这类开放式任务更适合？</div>
+  <button class="opt" data-ok="1" data-exp="正确！所需步骤数事前无法预测（改几个文件、失败几次都不知道），正适合需要动态规划与工具使用的 Agent。">编码 Agent（自主决策、以测试结果作观察反馈迭代）</button>
+  <button class="opt" data-ok="0" data-exp="不够。固定的一次性生成很难覆盖「改文件→跑测试→看报错→再改」的动态迭代需求。">一次性生成整段代码，不做任何工具调用</button>
+  <button class="opt" data-ok="0" data-exp="方向可以，但需注意 Agent 成本更高、易累积错误，仍需沙盒测试与护栏；仅写死流程无法应对开放改动。">写死一条固定的改写流程，不做动态规划</button>
+  <div class="explain"><b>解析：</b><span class="exp"></span></div>
+</div>
+
+<h2><span class="no">8</span>参考资料链接 References</h2>
+<p class="q">以下来源已尽力核验为权威机构 / 教材 / 官方文档。部分中文转载页仅作对照阅读，判断依据以官方与学术原文为准。</p>
+<ul class="ref">
+  <li><span class="src-type">官方规范</span><b>《智能体规范应用与创新发展实施意见》（国家网信办、国家发展改革委、工业和信息化部，2026-05）</b>——智能体官方定义与治理框架。
+    <br><a href="https://dsj.guizhou.gov.cn/zwgk/zcwj/fgwj/202605/t20260509_90156400.html">政策转载全文（贵州省大数据局）</a> ／ <a href="https://english.www.gov.cn/news/202605/08/content_WS69fde8e2c6d00ca5f9a0ad49.html">英文报道（中国政府网）</a></li>
+  <li><span class="src-type">权威教材</span><b>Stuart Russell &amp; Peter Norvig, 《Artificial Intelligence: A Modern Approach》（第 2 章 Intelligent Agents）</b>——Agent / 理性 Agent / Agent 函数与类型的标准定义。
+    <br><a href="https://cs.brynmawr.edu/Courses/cs372/spring2012/slides/02_IntelligentAgents.pdf">配套讲义（Bryn Mawr College）</a> ／ <a href="https://teaching.csse.uwa.edu.au/units/CITS4211/Lectures/topic02.pdf">西澳大学课件</a> ／ <a href="https://theghoul21.github.io/AI-2024-2025/IA_L03-20250310_091808-Meeting_Recording.mp4.html">理性 Agent 讲解（含定义出处）</a></li>
+  <li><span class="src-type">厂商官方</span><b>Anthropic, "Building Effective Agents"</b>——Workflow vs Agent 的架构区分、五种工作流模式、何时使用 Agent 与护栏建议。
+    <br><a href="https://www.anthropic.com/research/building-effective-agents">官方英文原文</a> ／ <a href="https://ai-bot.cn/building-effective-agents-claude/">中文对照阅读（AI工具集，第三方翻译）</a> ／ <a href="https://claude.com/blog/common-workflow-patterns-for-ai-agents-and-when-to-use-them">Anthropic 官方工作流模式指南</a></li>
+  <li><span class="src-type">厂商官方</span><b>Anthropic, "How we built our multi-agent research system"</b>——多智能体（主智能体 + 子智能体）真实工程案例。
+    <br><a href="https://www.anthropic.com/engineering/multi-agent-research-system">官方原文</a></li>
+  <li><span class="src-type">政府/政策</span><b>Australian Government Digital, "Agentic AI addendum"</b>——AI agent（组件）定义、感知-推理-行动（PRA）循环、护栏与可观测性框架。
+    <br><a href="http://www.digital.gov.au/policy/ai/agentic-ai-addendum-background">数字政府官方背景文档</a></li>
+  <li><span class="src-type">学术综述</span><b>ReAct（Reasoning+Acting）范式与 LLM Agent 架构综述</b>——规划（Plan-and-Execute）、记忆、工具（Function Calling / MCP / A2A）等。
+    <br><a href="https://gitcode.csdn.net/6a0e9a4610ee7a33f27418b3.html">Agentic AI 架构演进综述</a> ／ <a href="https://www.whatgenerativeai.com/docs/genai-playbook/anatomy-of-ai-agent">Anatomy of an AI Agent</a> ／ <a href="https://cloud.tencent.com/developer/article/2732991">AI 智能体开发技术（腾讯云）</a></li>
+  <li><span class="src-type">词源考证</span><b>寿步,《人工智能领域伦理主体 agent（行为体）的追本溯源》，《自然辩证法通讯》2023</b>——agent 词源（拉丁文 agere=去做）与中译名"行为体"之争。
+    <br><a href="https://jdn.ucas.ac.cn/public/uploads/files/654d9474e2b81.pdf">期刊 PDF（中国科学院大学）</a></li>
+</ul>
+
+<div class="foot">
+本资料为"Agent（智能体）"主题的学习材料，由 concept-learning-generator 生成。内容基于上述权威来源整理与交叉验证；为便于理解加入了类比与小结，学习时请以原始文献为准。
+</div>
+
+</div>
+
+<script>
+  // 选择题交互
+  document.querySelectorAll('.opt').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var box = btn.closest('.quiz-q');
+      var ex = box.querySelector('.exp');
+      if(ex){ ex.textContent = btn.dataset.exp || ''; }
+      box.querySelectorAll('.opt').forEach(function(o){ o.classList.remove('correct','wrong'); });
+      if(btn.dataset.ok === '1'){ btn.classList.add('correct'); }
+      else{ btn.classList.add('wrong'); var right = box.querySelector('.opt[data-ok="1"]'); if(right){right.classList.add('correct');} }
+      box.querySelectorAll('.opt').forEach(function(o){ o.disabled = true; });
+    });
+  });
+</script>
+</body>
+</html>

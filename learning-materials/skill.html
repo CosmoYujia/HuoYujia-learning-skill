@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Skill（智能体技能）概念学习资料</title>
+<style>
+  :root{
+    --bg:#fafafa; --card:#ffffff; --text:#1f2328; --muted:#57606a;
+    --line:#e7e7e7; --accent:#3b6fe0; --accent-soft:#eaf0fc;
+    --ok:#1a7f37; --ok-soft:#e6f4ea; --no:#cf222e; --no-soft:#fbe9ea;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.75; font-size:16px;}
+  .wrap{max-width:720px; margin:0 auto; padding:40px 22px 80px;}
+  h1{font-size:28px; line-height:1.3; margin:0 0 6px; font-weight:700;}
+  .sub{color:var(--muted); font-size:14px; margin-bottom:22px;}
+  .meta{display:flex; flex-wrap:wrap; gap:6px 14px; color:var(--muted); font-size:13px;
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding:10px 0; margin-bottom:26px;}
+  .tag{background:var(--accent-soft); color:var(--accent); border-radius:4px;
+    padding:1px 8px; font-size:12px;}
+  h2{font-size:20px; margin:40px 0 6px; padding-bottom:8px;
+    border-bottom:1px solid var(--line);}
+  h2 .no{color:var(--accent); font-weight:700; margin-right:8px;}
+  h3{font-size:16px; margin:20px 0 6px;}
+  p{margin:10px 0;}
+  .lead{font-size:17px; color:var(--text); background:var(--card);
+    border-left:3px solid var(--accent); padding:14px 16px; border-radius:0 6px 6px 0;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:16px 18px; margin:14px 0;}
+  ul,ol{padding-left:22px; margin:8px 0;}
+  li{margin:5px 0;}
+  .q{color:var(--muted); font-size:14px;}
+  table{width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; background:var(--card);}
+  th,td{border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top;}
+  th{background:#f3f3f3; font-weight:600;}
+  pre{background:#f6f6f6; border:1px solid var(--line); border-radius:6px; padding:10px 14px;
+    overflow-x:auto; font-size:13px; line-height:1.5;}
+  code{background:#f0f0f0; border-radius:3px; padding:1px 5px;
+    font-family:"SFMono-Regular",Consolas,"Courier New",monospace; font-size:0.88em;}
+  pre code{background:none; padding:0;}
+  /* 自测题 */
+  .quiz-q{margin:16px 0;}
+  .quiz-level{display:inline-block; font-size:12px; border-radius:4px; padding:1px 8px; margin-bottom:4px;}
+  .lvl-basic{background:var(--ok-soft); color:var(--ok);}
+  .lvl-mid{background:#fff3cd; color:#8a6d00;}
+  .lvl-app{background:var(--accent-soft); color:var(--accent);}
+  .quiz-title{font-weight:600; margin:4px 0 8px;}
+  .opt{display:block; width:100%; text-align:left; background:var(--card);
+    border:1px solid var(--line); border-radius:6px; padding:9px 12px; margin:6px 0;
+    font-size:14.5px; cursor:pointer; color:var(--text); transition:border-color .15s;}
+  .opt:hover{border-color:var(--accent);}
+  .opt.correct{background:var(--ok-soft); border-color:var(--ok);}
+  .opt.wrong{background:var(--no-soft); border-color:var(--no);}
+  .explain{display:none; margin-top:8px; background:#f6f6f6; border-radius:6px; padding:10px 14px; font-size:14px; color:var(--text);}
+  .opt.correct ~ .explain, .opt.wrong ~ .explain{display:block;}
+  .explain b{color:var(--accent);}
+  a{color:var(--accent); text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  .ref{margin:12px 0; padding-left:0; list-style:none;}
+  .ref li{margin:10px 0; font-size:14.5px;}
+  .src-type{display:inline-block; font-size:11px; background:#f0f0f0; color:var(--muted);
+    border-radius:3px; padding:0 6px; margin-right:8px;}
+  .foot{color:var(--muted); font-size:13px; border-top:1px solid var(--line); margin-top:40px; padding-top:14px;}
+  @media(max-width:520px){ h1{font-size:23px;} body{font-size:15px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Agent Skill（智能体技能）概念学习资料</h1>
+<div class="sub">把"专家怎么做某件事"打包成文件夹，让通用智能体按需学会——解析 SKILL.md、渐进式披露与设计方法论</div>
+<div class="meta">
+  <span>📚 领域：Agentic AI / 智能体工程</span>
+  <span>⏱ 建议学习时长：约 50–70 分钟</span>
+  <span class="tag">概念</span><span class="tag">机制</span><span class="tag">规范</span><span class="tag">自测</span>
+</div>
+<p class="q">更新日期：2026-09-06 ｜ 依据来源：Anthropic 官方文档与工程博客、Agent Skills 开放标准官网（skill.md），共 8+ 处交叉验证</p>
+
+<h2><span class="no">1</span>学习目标 Learning Objectives</h2>
+<p>学完这份资料，你应当能够：</p>
+<ul>
+  <li><b>准确界定</b>Agent Skill：它是一种"打包专业流程知识与资源、供智能体按需加载"的文件夹式能力格式。</li>
+  <li><b>拆解</b>一个 Skill 的目录结构与核心文件，说出 <code>SKILL.md</code> 顶部 YAML 元数据（name/description）的作用。</li>
+  <li><b>解释</b>核心设计原则"渐进式披露（progressive disclosure）"：三层内容各在何时、以多少成本加载进上下文。</li>
+  <li><b>区分</b>Skill 与 Prompt、Custom Instructions、MCP、Plugin、Script 等相近概念的边界。</li>
+  <li><b>判断</b>某个"重复任务"是否值得做成 Skill，而不是写一段 prompt 或用其他机制。</li>
+  <li><b>独立完成</b>分级自测，检验真实掌握程度。</li>
+</ul>
+
+<h2><span class="no">2</span>核心问题 Essential Questions</h2>
+<ul>
+  <li>一个通用的大模型智能体，怎样才能可靠地完成"需要专业知识/固定流程"的任务，而不必每次都靠人反复叮嘱？</li>
+  <li>Skill 目录里"SKILL.md + 引用文件"为什么能解决上下文窗口有限的问题？</li>
+  <li>Skill、Prompt、MCP、Plugin 各有分工，凭什么 Skill 是"流程知识"的载体？</li>
+  <li>什么情况下该把一个流程做成 Skill，什么情况反而不该做？</li>
+</ul>
+
+<h2><span class="no">3</span>概念解释 Concept Explanation</h2>
+
+<h3>一句话定义</h3>
+<div class="lead"><b>Agent Skill（智能体技能）</b>，是把<b>程序性知识（怎么做事）与相关资源，组织进一个可被发现、按需加载的文件夹</b>，从而把一个"通用智能体"变成"擅长特定任务的专家"的开放能力格式。</div>
+
+<h3>通俗类比</h3>
+<p>把一个 Skill 想成<b>给新员工做的一份入职指南（onboarding guide）</b>：它不讲"你是谁"这种通用事（那属于系统提示），而是聚焦"如何把这项工作做好"。员工（智能体）平时只需知道手边有哪几份指南（只读标题）；当任务对上了某份指南，才翻开正文照着做；若需要更细的操作手册或工具脚本，再按需查阅。</p>
+
+<h3>权威定义与出处</h3>
+<div class="card">
+<p><b>① Anthropic 官方工程博客</b>：Agent Skills 是"<b>有组织的指令、脚本与资源文件夹，智能体可动态发现并按需加载</b>，从而在特定任务上表现更好"的能力。它把专家经验封装成<b>可组合（composable）</b>的能力，把通用智能体变成贴合需求的专用智能体。</p>
+</div>
+<div class="card">
+<p><b>② Agent Skills 开放标准官网（skill.md）</b>：Agent Skills 是一种<b>轻量、开放的能力格式</b>，用于为 AI 智能体扩展专业知识与工作流。其核心是"一个含 SKILL.md 的文件夹"，该文件至少包含元数据（name 与 description）与指示智能体如何完成任务的说明；还可附带脚本、参考资料、模板等。</p>
+</div>
+<div class="card">
+<p><b>③ Anthropic 官方产品文档（platform.claude.com）</b>：Skills 是"<b>可复用的、基于文件系统的资源</b>"，赋予智能体领域专业知识（工作流、上下文与最佳实践）。与"针对一次性任务的对话级 prompt"不同，Skill 按需加载，无需在每次对话中重复相同的指导。2025-12-18 起，Agent Skills 被发布为开放标准，实现跨平台可移植。</p>
+</div>
+<p class="q">历史脉络：Agent Skill 由 Anthropic 提出并开源标准化，2025 年 12 月发布为开放标准后被大量智能体产品与客户端采用，形成 skill.md 生态。它是一个"仍在快速演进"的新兴规范。</p>
+
+<h2><span class="no">4</span>核心机制 Core Mechanism</h2>
+
+<h3>4.1 目录结构</h3>
+<p>一个 Skill 本质上是一个<b>文件夹</b>。最小形态只含一个 <code>SKILL.md</code>；复杂时可在其中捆绑额外文件：</p>
+<pre><code>my-skill/
+├── SKILL.md        # 必需：元数据(YAML frontmatter) + 正文指令
+├── scripts/        # 可选：可执行代码（Python/Shell/JS 等）
+├── references/     # 可选：参考文档（API 文档、Schema、政策等）
+├── assets/         # 可选：模板、资源文件
+└── ...             # 任意其他文件或子目录
+</code></pre>
+
+<h3>4.2 SKILL.md 的结构</h3>
+<div class="card">
+<p><b>顶部：YAML Frontmatter（元数据）</b>——Skill 的"身份证"，至少包含 <code>name</code> 与 <code>description</code>。description 极其关键，它是智能体把"用户请求"与"该不该触发这个 Skill"进行匹配的依据，因此既要说"这个 Skill 做什么"，也要说"什么时候用它"。</p>
+<pre><code>---
+name: pdf-processing
+description: 从 PDF 提取文本与表格、填写表单、合并文档。当处理 PDF 文件或用户提到 PDF/表单/文档提取时使用。
+---</code></pre>
+<p><b>正文：程序性指令</b>——用 Markdown 写明"怎么做"，通常包含：必需输入、有序步骤、判断规则、期望输出、失败/升级条件、验证动作、明确禁止的动作。推荐将 SKILL.md 保持精简（官方建议 <b>500 行以内</b>），把细节移到引用文件。</p>
+</div>
+
+<h3>4.3 核心设计原则：渐进式披露（Progressive Disclosure）</h3>
+<p>这是让 Skill"既强大又不撑爆上下文"的关键，内容分三层，各在不同时机、以不同 token 成本进入上下文：</p>
+<table>
+  <tr><th style="width:150px;">层级</th><th style="width:150px;">加载时机</th><th style="width:150px;">成本</th><th>内容</th></tr>
+  <tr><td>L1 元数据</td><td>启动时始终加载</td><td>每个 Skill 约 100 token</td><td>所有已安装 Skill 的 name + description 进入系统提示，让智能体知道"何时该用哪个"。</td></tr>
+  <tr><td>L2 指令</td><td>Skill 被触发时</td><td>通常 &lt;5K token</td><td>智能体认为相关时，才读取完整 SKILL.md 正文进上下文。</td></tr>
+  <tr><td>L3+ 资源与代码</td><td>需要时才访问</td><td>访问前为 0</td><td>references/、assets/、scripts/ 等捆绑文件，按需读取或执行。</td></tr>
+</table>
+<p>由此带来的好处：可以<b>安装大量 Skill 而不产生上下文负担</b>——在真正被触发前，每个 Skill 只占几十~一百 token 的元数据。可捆绑的上下文量因此"几乎不受限"。</p>
+
+<h3>4.4 Skill 如何"跑起来"</h3>
+<p>典型调用链（以读取一个技能为例）：</p>
+<ol>
+  <li>会话启动：系统提示中含各 Skill 的 name/description。</li>
+  <li>用户请求到来，智能体判断与某 Skill 的 description 匹配。</li>
+  <li>智能体用文件/代码执行工具<b>读取该 Skill 的 SKILL.md 正文</b>进上下文。</li>
+  <li>按正文指示，必要时继续读取 references、执行 scripts（某些操作用确定性代码比"让模型生成 token"更可靠、更省成本）。</li>
+  <li>按指示完成任务并产出结果。</li>
+</ol>
+
+<h3>4.5 Skill 与相邻概念的分工</h3>
+<table>
+  <tr><th style="width:150px;">机制</th><th>它回答什么</th><th>适合</th></tr>
+  <tr><td>Prompt</td><td>这一次具体要做什么</td><td>一次性/临时任务。不可复用、无发现机制。</td></tr>
+  <tr><td>Custom Instructions / AGENTS.md</td><td>几乎每次都适用的规则</td><td>始终加载的通用默认行为、仓库级长期规则。</td></tr>
+  <tr><td><b>Agent Skill</b></td><td><b>这类任务按哪套流程/知识/边界做</b></td><td><b>可复用、按需加载的流程知识包。</b></td></tr>
+  <tr><td>Script（脚本）</td><td>如何做确定性转换/检查</td><td>精确计算、校验、文件操作；但不能"解释何时用"。可被 Skill 捆绑。</td></tr>
+  <tr><td>MCP Server</td><td>能连上哪些外部系统/实时数据</td><td>访问实时/外部数据（数据库、API），需要连接与授权。</td></tr>
+  <tr><td>Plugin</td><td>如何分发与安装</td><td>安装与共享的打包层，可把 Skill、MCP、commands 等打包在一起。</td></tr>
+</table>
+<div class="card">
+<p><b>一句话厘清几个关键对</b>：MCP 提供"能连到什么"，Skill 提供"该怎么做事"——二者<b>正交且常组合</b>（MCP 取数，Skill 教模型按团队规范处理这些数）。Skill 更像"自动触发的标准作业流程（SOP）"，斜杠命令（Slash Command）则是"手动触发的流程"。Plugin 是分发容器，不是流程本身。</p>
+</div>
+
+<h2><span class="no">5</span>应用场景 Applications</h2>
+<div class="card">
+<p><b>场景 A：文档处理技能（官方内置示例）</b></p>
+<ul>
+  <li><b>怎么用</b>：把"从 PDF 提文本/填表单/合并"的步骤封装成 skill，模型读 SKILL.md 与 forms.md、必要时跑脚本。</li>
+  <li><b>为何有效</b>：模型懂 PDF 内容但不会"直接操作"，Skill 恰好补上程序性操作能力；表单细节放引用文件，保持核心精简。</li>
+</ul>
+</div>
+<div class="card">
+<p><b>场景 B：团队代码评审规范</b></p>
+<ul>
+  <li><b>怎么用</b>：把"按团队标准评审 PR"的方法做成 skill；配合 MCP 取到 PR 数据。</li>
+  <li><b>为何有效</b>：MCP 提供"PR #402 内容"，Skill 教模型"用团队规范审它"——访问与流程解耦、各司其职。</li>
+</ul>
+</div>
+<div class="card">
+<p><b>场景 C：重复性内容/研报/合规流程</b></p>
+<ul>
+  <li><b>怎么用</b>：把"从提交记录生成面向客户的发布说明""按品牌规范审阅营销内容""按合规清单审查"等做成 skill。</li>
+  <li><b>为何有效</b>：任务重复、输出结构稳定、步骤易被遗忘——正是 Skill 的理想对象，能保证一致、可审计。</li>
+</ul>
+</div>
+<div class="card">
+<p><b>场景 D：跨产品复用与团队共享</b></p>
+<ul>
+  <li><b>怎么用</b>：做成开放格式的 skill 后，在支持该标准的各智能体客户端间复用，或用 git 版本控制与团队共享。</li>
+  <li><b>为何有效</b>：可组合 + 可移植 + 高效（只加载所需），把个人/团队经验沉淀为可分发资产。</li>
+</ul>
+</div>
+
+<h2><span class="no">6</span>易混淆问题 Confusions</h2>
+<table>
+  <tr><th style="width:150px;">易混概念</th><th>区别要点</th></tr>
+  <tr>
+    <td>Prompt<br>vs<br>Skill</td>
+    <td>Prompt 是<b>一次性对话指令</b>，无结构化、无自动发现；Skill 是<b>结构化、可发现、可复用</b>的能力包，按需加载。判据：同一段指令你写/贴了 2 次以上 → 可能是 Skill 的候选。</td>
+  </tr>
+  <tr>
+    <td>Custom Instructions / AGENTS.md<br>vs<br>Skill</td>
+    <td>前者是<b>几乎总适用</b>的宽泛偏好与仓库级规则，常驻上下文；Skill 是<b>任务特定</b>的详细流程，只在相关时进入上下文。宽泛指南→自定义指令；具体 SOP→Skill。</td>
+  </tr>
+  <tr>
+    <td>Skill<br>vs<br>Script（脚本）</td>
+    <td>Skill 定义"<b>何时做、按什么流程做、失败了怎样</b>"；Script 只做<b>确定性转换/计算</b>，不能解释用途。官方建议：默认用指令，仅当需要确定性时再加脚本，并把脚本<b>捆绑进 Skill</b>。</td>
+  </tr>
+  <tr>
+    <td>Skill<br>vs<br>MCP Server</td>
+    <td>Skill 提供"<b>如何做（procedure）</b>"，静态、无需连接；MCP 提供"<b>能访问什么（access）</b>"，连实时外部系统、需授权。二者互补：MCP 取数、Skill 教用法。</td>
+  </tr>
+  <tr>
+    <td>Skill<br>vs<br>Plugin</td>
+    <td>Plugin 是<b>分发/安装层</b>，可把 Skill、MCP、Slash Command 等打包一起共享；Skill 是流程本体。Plugin 回答"怎么分发"，Skill 回答"单个任务怎么执行"。</td>
+  </tr>
+</table>
+
+<h3>常见误区速查</h3>
+<ul>
+  <li><b>误区：SKILL.md 越长越好、把整本手册塞进去</b>。正解：SKILL.md 越短越好（规范建议 &lt;500 行），细节放引用文件；Skill 是为了<b>省上下文</b>，不是往上下文里塞更多东西。</li>
+  <li><b>误区：装了 Skill 就等于永久占用大量上下文</b>。正解：触发前每个 Skill 只占元数据（约 100 token），靠渐进式披露按需加载。</li>
+  <li><b>误区：一有重复需求就做 Skill</b>。正解：若团队还没搞清流程，过早封装只会"把混乱变成可复用的混乱"。先手动跑通、记录步骤、摸清边界，再封装。</li>
+  <li><b>误区：Skill 能自己连外部实时数据</b>。正解：Skill 是静态流程；访问实时数据要靠 MCP，Skill 不要假装有它从未被授予的实时访问。</li>
+</ul>
+
+<h2><span class="no">7</span>分级自测题 Assessment</h2>
+<p class="q">选择题点击选项即可看到对错与解析。共 6 题。</p>
+
+<div class="quiz-q">
+  <span class="quiz-level lvl-basic">基础 · 识记</span>
+  <div class="quiz-title">1. 一个最小可用的 Agent Skill，在文件夹里至少需要哪个文件？</div>
+  <button class="opt" data-ok="1" data-exp="正确！Skill 的最小形态是「含 SKILL.md 的文件夹」，该文件用 YAML 元数据 + 正文指令描述任务。">SKILL.md</button>
+  <button class="opt" data-ok="0" data-exp="不准确。scripts/、references/ 等都是可选捆绑项；最小形态只需 SKILL.md。">scripts/ 目录与若干脚本</button>
+  <button class="opt" data-ok="0" data-exp="不准确。SKILL.md 是必需核心，ref.md 之类是可选引用文件。">仅一个 README.md</button>
+  <div class="explain"><b>解析：</b><span class="exp"></span></div>
+</div>
+
+<div class="quiz-q">
+  <span class="quiz-level lvl-basic">基础 · 识记</span>
+  <div class="quiz-title">2. SKILL.md 顶部 YAML Frontmatter 中，用于让智能体判断"是否触发该技能"的最关键字段是？</div>
+  <button class="opt" data-ok="0" data-exp="不对。description 才是匹配依据——它需要说明「做什么」和「何时用」，是触发判断的核心。">只靠 name，因为它必须与目录名一致</button>
+  <button class="opt" data-ok="1" data-exp="正确！description 是智能体把用户请求与该技能匹配的凭据，须写明「做什么」+「何时用它」。">description</button>
+  <button class="opt" data-ok="0" data-exp="不准确。正文属于「触发后才加载」的 L2 层，不参与启动时的触发匹配。">文件正文中写的第一段指令</button>
+  <div class="explain"><b>解析：</b><span class="exp"></span></div>
+</div>
+
+<div class="quiz-q">
+  <span class="quiz-level lvl-mid">进阶 · 机制理解</span>
+  <div class="quiz-title">3. "渐进式披露（Progressive Disclosure）"带来的核心好处是？</div>
+  <button class="opt" data-ok="0" data-exp="相反——它恰恰能让「尽量不占上下文」：触发前每个 Skill 只占元数据。">无论是否用到，每个 Skill 的全文都会在启动时一次性载入上下文</button>
+  <button class="opt" data-ok="1" data-exp="正确！元数据常驻、指令触发才读、资源按需访问，使得可安装大量 Skill 而上下文负担很小。">可安装大量 Skill 而上下文负担很小：元数据常驻，正文/资源按需加载</button>
+  <button class="opt" data-ok="0" data-exp="不对。渐进式披露正是靠「分层按需加载」突破单文件大小限制，而非鼓励把 SKILL.md 写得很长。">要求把全部内容都写进一个超长的 SKILL.md，以省去引用文件</button>
+  <div class="explain"><b>解析：</b><span class="exp"></span></div>
+</div>
+
+<div class="quiz-q">
+  <span class="quiz-level lvl-mid">进阶 · 机制理解</span>
+  <div class="quiz-title">4. 关于 Skill 与 MCP 的关系，正确的是？</div>
+  <button class="opt" data-ok="0" data-exp="不对。二者正交互补而非替代：MCP 提供访问/连接，Skill 提供流程知识。">两者是替代关系——有了 MCP 就不需要 Skill，反之亦然</button>
+  <button class="opt" data-ok="1" data-exp="正确！MCP 解决「能连到什么（访问/连接）」，Skill 解决「该怎么做事（流程知识）」；生产中常组合使用。">二者正交且常组合：MCP 提供对实时系统的访问，Skill 教模型按规范处理所取数据</button>
+  <button class="opt" data-ok="0" data-exp="不对。MCP 连的是实时外部系统/数据库，Skill 通常是静态流程包，并不负责连外部系统。">Skill 的主要职责是连接数据库等外部实时系统，MCP 只负责写流程</button>
+  <div class="explain"><b>解析：</b><span class="exp"></span></div>
+</div>
+
+<div class="quiz-q">
+  <span class="quiz-level lvl-app">应用 · 场景判断</span>
+  <div class="quiz-title">5. 团队有一套"每次都要按 5 步做的发布前合规审查"流程，且常被遗忘步骤。最合适的做法是？</div>
+  <button class="opt" data-ok="0" data-exp="不理想。这正属于「步骤易被遗忘、流程重复、有清晰边界」的场景——每次重写提示容易漏、不一致。">每次都临时写一段 prompt 交代清楚</button>
+  <button class="opt" data-ok="1" data-exp="正确！重复、步骤易忘、输出结构稳定、有验收标准——正是把流程封装成 Agent Skill 的理想对象。">把它封装成一个 Agent Skill（含步骤、判定规则与验收动作）</button>
+  <button class="opt" data-ok="0" data-exp="不对。若数据已本地、流程不需外部系统，引入 MCP 反而增加连接与维护成本；这更像 Skill 的活。">先接一个 MCP server 来存放这套审查步骤</button>
+  <div class="explain"><b>解析：</b><span class="exp"></span></div>
+</div>
+
+<div class="quiz-q">
+  <span class="quiz-level lvl-app">应用 · 场景判断</span>
+  <div class="quiz-title">6. 某同事想做 Skill，但该流程他自己都还没讲清输入/输出/停止条件。此时更合理的做法是？</div>
+  <button class="opt" data-ok="0" data-exp="不当。过早封装「说不清的流程」只会把混乱变成可复用的混乱。">立刻做成 Skill，先固化下来再说</button>
+  <button class="opt" data-ok="1" data-exp="正确！流程尚未清晰时不宜封装。先手动跑通、记录有效步骤、摸清边界，确认稳定可复用后再做成 Skill。">先用 prompt 手动跑通、记录有效步骤与边界，确认稳定后再封装为 Skill</button>
+  <button class="opt" data-ok="0" data-exp="不妥。把不稳定流程写进 AGENTS.md 会让常驻规则过早定型，且它本不该承载具体且多变的过程细节。">把不稳定流程先写进 AGENTS.md 常驻生效</button>
+  <div class="explain"><b>解析：</b><span class="exp"></span></div>
+</div>
+
+<h2><span class="no">8</span>参考资料链接 References</h2>
+<p class="q">以下来源以 Anthropic 官方与 Agent Skills 开放标准官网为主，均已尽力核验。请以原始官方文档为准。</p>
+<ul class="ref">
+  <li><span class="src-type">官方文档</span><b>Anthropic, "Equipping agents for the real world with Agent Skills"</b>——Agent Skill 的设计动机、目录结构、SKILL.md 分层与渐进式披露详解、最佳实践。
+    <br><a href="https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills">官方工程博客</a></li>
+  <li><span class="src-type">官方产品文档</span><b>Anthropic Claude Platform, "Agent Skills Overview"</b>——L1/L2/L3 分层内容与加载时机/token 成本、Skill 三类内容、可用性说明。
+    <br><a href="https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview">platform.claude.com 官方文档</a></li>
+  <li><span class="src-type">官方发布</span><b>Anthropic, "Introducing Agent Skills"</b>——可组合/可移植/高效/强大四特性与发布说明（2025-12-18 开放标准化）。
+    <br><a href="https://anthropic.com/news/skills">Anthropic 官方新闻</a></li>
+  <li><span class="src-type">开放标准</span><b>Agent Skills 开放标准官网（skill.md）</b>——Agent Skills 的轻量开放格式、发现-激活-执行三步、目录约定与生态/采用方清单。
+    <br><a href="http://skill.md/">skill.md 官方</a>（含规范文档，可进一步获取 Specification）</li>
+  <li><span class="src-type">概念辨析</span><b>"What Are AI Agent Skills? How SKILL.md Works in 2026"（Ai Insights News）</b>——Skill vs Custom Instructions vs Tool vs MCP 对照表、何时该用 Skill、构建六步。
+    <br><a href="https://aiinsightsnews.net/what-are-ai-agent-skills-how-skill-md-works-in-2026">文章</a></li>
+  <li><span class="src-type">概念辨析</span><b>MindStudio, "Prompts vs Skills vs Plugins vs MCPs"</b>——四层嵌套关系（Prompt 一次性 / Skill 可复用流程 / MCP 访问 / Plugin 分发）与 YAML frontmatter 触发机制。
+    <br><a href="https://www.mindstudio.ai/blog/prompts-vs-skills-vs-plugins-vs-mcps-framework">文章</a></li>
+  <li><span class="src-type">工程实践</span><b>LearnPrompt, "What Exactly Is an Agent Skill"</b>——Prompt/Skill/AGENTS.md/Script/MCP/Plugin 分工表、何时值得升级为 Skill 的四条件。
+    <br><a href="https://www.learnprompt.pro/en/agent-skills/what-are-agent-skills/">文章</a></li>
+</ul>
+
+<div class="foot">
+本资料为"Agent Skill（智能体技能）"主题学习材料，由 concept-learning-generator 生成。内容基于上述权威来源整理与交叉验证；Skill 仍为快速演进的开放标准，学习时请以原始官方文档与最新规范为准。
+</div>
+
+</div>
+
+<script>
+  document.querySelectorAll('.opt').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var box = btn.closest('.quiz-q');
+      var ex = box.querySelector('.exp');
+      if(ex){ ex.textContent = btn.dataset.exp || ''; }
+      box.querySelectorAll('.opt').forEach(function(o){ o.classList.remove('correct','wrong'); });
+      if(btn.dataset.ok === '1'){ btn.classList.add('correct'); }
+      else{ btn.classList.add('wrong'); var right = box.querySelector('.opt[data-ok="1"]'); if(right){right.classList.add('correct');} }
+      box.querySelectorAll('.opt').forEach(function(o){ o.disabled = true; });
+    });
+  });
+</script>
+</body>
+</html>
